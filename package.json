@@ -2,14 +2,14 @@
   "name": "mdlint",
   "displayName": "mdLint",
   "description": "使用 @lint-md/cli 为 Markdown 文件提供格式规则检查。",
-  "author": "wdssmq",
-  "license": "MIT",
   "version": "1.0.0",
+  "author": "wdssmq",
+  "publisher": "wdssmq",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/wdssmq/vscode-plugin-mdLint"
   },
-  "publisher": "wdssmq",
   "categories": [
     "Linters"
   ],
