@@ -15,6 +15,7 @@ import {
   TextDocumentPositionParams,
   TextDocumentSyncKind,
   InitializeResult,
+  Position,
 } from "vscode-languageserver/node";
 
 import { TextDocument } from "vscode-languageserver-textdocument";
@@ -175,9 +176,13 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
     if (levelType) {
       let diagnosic: Diagnostic = {
         severity: DiagnosticSeverity[levelType],
+        // range: {
+        //   start: textDocument.positionAt(start.column),
+        //   end: textDocument.positionAt(end.column),
+        // },
         range: {
-          start: textDocument.positionAt(start.column),
-          end: textDocument.positionAt(end.column),
+          start: Position.create(start.line - 1, start.column - 1),
+          end: Position.create(end.line - 1, end.column - 1),
         },
         message: `${text}\n[${type}]\n${debug}`,
         source: "mdlint",
