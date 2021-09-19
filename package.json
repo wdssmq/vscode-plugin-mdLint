@@ -28,6 +28,12 @@
       "type": "object",
       "title": "mdLint",
       "properties": {
+        "mdLintServer.num": {
+          "scope": "resource",
+          "type": "number",
+          "default": 100,
+          "description": "Just A Number"
+        },
         "mdLintServer.trace.server": {
           "scope": "window",
           "type": "string",
