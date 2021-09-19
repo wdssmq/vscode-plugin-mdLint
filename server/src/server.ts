@@ -159,7 +159,7 @@ documents.onDidChangeContent((change) => {
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   // In this simple example we get the settings for every validate run.
-  // const settings = await getDocumentSettings(textDocument.uri);
+  const settings = await getDocumentSettings(textDocument.uri);
 
   // The validator creates diagnostics for all uppercase words length 2 and more
   const text = textDocument.getText();
@@ -169,7 +169,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 
   errors.forEach((error: any) => {
     const { start, end, text, type, level } = error;
-    const debug = [start.column, end.column, type, level].join("，");
+    const debug = [start.column, end.column, type, settings.num].join("，");
 
     const levelType = getLevelType(level);
 
