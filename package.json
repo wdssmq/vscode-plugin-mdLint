@@ -2,7 +2,7 @@
   "name": "mdlint",
   "displayName": "mdLint",
   "description": "使用 @lint-md/cli 为 Markdown 文件提供格式规则检查。",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "wdssmq",
   "publisher": "wdssmq",
   "license": "MIT",
