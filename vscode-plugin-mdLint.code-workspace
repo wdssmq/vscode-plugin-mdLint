@@ -1,0 +1,29 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {},
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "vsce package",
+        "type": "shell",
+        "command": [
+          "rm -rf *.vsix \r\n",
+          "vsce package \r\n",
+          "code --install-extension *.vsix"
+        ],
+        "problemMatcher": []
+      },
+      {
+        "label": "vsce publish patch",
+        "type": "shell",
+        "command": ["vsce publish patch"],
+        "problemMatcher": []
+      }
+    ]
+  }
+}
