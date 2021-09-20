@@ -169,7 +169,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 
   errors.forEach((error: any) => {
     const { start, end, text, type, level } = error;
-    const debug = [start.column, end.column, type, settings.num].join("，");
+    // const debug = [start.column, end.column, type, settings.num].join("，");
 
     const levelType = getLevelType(level);
 
@@ -184,7 +184,8 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
           start: Position.create(start.line - 1, start.column - 1),
           end: Position.create(end.line - 1, end.column - 1),
         },
-        message: `${text}\n[${type}]\n${debug}`,
+        // message: `${text}\n[${type}]\n${debug}`,
+        message: `${text}\n[${type}]`,
         source: "mdlint",
       };
       diagnostics.push(diagnosic);
