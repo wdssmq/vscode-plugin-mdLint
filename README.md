@@ -19,18 +19,6 @@ lint-md/vscode-plugin: Configurable VSCode 💻markdown plugin：
 
 <table border="1">
   <tr>
-    <td align="center" colspan="3">
-      <a
-        target="_blank"
-        href="https://afdian.net/@wdssmq"
-        title="沉冰浮水正在创作和 z-blog 相关或无关的各种有用或没用的代码 | 爱发电"
-        ><img
-          src="https://www.wdssmq.com/zb_users/logos/afdian.png"
-          alt="爱发电"
-      /></a>
-    </td>
-  </tr>
-  <tr>
     <td>
       <img
         src="https://cdn.jsdelivr.net/gh/wdssmq/wdssmq@main/doc/qr-ali.png"
@@ -51,6 +39,18 @@ lint-md/vscode-plugin: Configurable VSCode 💻markdown plugin：
         alt="qr-qq"
         title="qr-qq"
       />
+    </td>
+  </tr>
+  <tr>
+    <td align="center" colspan="3">
+      <a
+        target="_blank"
+        href="https://afdian.net/@wdssmq"
+        title="沉冰浮水正在创作和 z-blog 相关或无关的各种有用或没用的代码 | 爱发电"
+        ><img
+          src="https://cdn.jsdelivr.net/gh/wdssmq/wdssmq@main/doc/afdian.png"
+          alt="爱发电"
+      /></a>
     </td>
   </tr>
 </table>
