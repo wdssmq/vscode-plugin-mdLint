@@ -2,8 +2,10 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"type": "npm",
-			"script": "compile",
+			"label": "pnpm: compile",
+			"type": "shell",
+			"command": "pnpm",
+			"args": ["run", "compile"],
 			"group": "build",
 			"presentation": {
 				"panel": "dedicated",
@@ -14,8 +16,10 @@
 			]
 		},
 		{
-			"type": "npm",
-			"script": "watch",
+			"label": "pnpm: watch",
+			"type": "shell",
+			"command": "pnpm",
+			"args": ["run", "watch"],
 			"isBackground": true,
 			"group": {
 				"kind": "build",
