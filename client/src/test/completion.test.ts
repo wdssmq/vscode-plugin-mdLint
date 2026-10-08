@@ -7,7 +7,7 @@ import * as assert from 'node:assert'
 import * as vscode from 'vscode'
 import { activate, getDocUri } from './helper'
 
-suite('Markdown completions', () => {
+describe('markdown completions', () => {
   const docUri = getDocUri('completion.md')
 
   it('provides completion items', async () => {

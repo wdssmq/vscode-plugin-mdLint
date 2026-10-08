@@ -7,7 +7,7 @@ import * as assert from 'node:assert'
 import * as vscode from 'vscode'
 import { activate, getDocUri } from './helper'
 
-suite('Markdown diagnostics', () => {
+describe('markdown diagnostics', () => {
   const docUri = getDocUri('diagnostics.md')
 
   it('publishes lint diagnostics', async () => {
