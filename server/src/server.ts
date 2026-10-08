@@ -2,7 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import type { RULE_SEVERITY } from '@lint-md/core'
+import type { LintMdRulesConfig, RULE_SEVERITY } from '@lint-md/core'
 import type {
   CompletionItem,
   Diagnostic,
@@ -13,6 +13,7 @@ import type {
 
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { lintMarkdown } from '@lint-md/core'
 import { TextDocument } from 'vscode-languageserver-textdocument'
 import {
@@ -26,10 +27,41 @@ import {
   TextDocumentSyncKind,
 } from 'vscode-languageserver/node'
 
-let rulesConfig = {}
-if (fs.existsSync(path.resolve('./mdlint.json'))) {
-  rulesConfig = JSON.parse(fs.readFileSync(path.resolve('./mdlint.json'), 'utf8')).rules
+// --- rules config ---
+function uriToFsPath(uri: string): string {
+  if (uri.startsWith('file://')) {
+    return fileURLToPath(uri)
+  }
+  return uri
 }
+
+const workspaceRulesCache = new Map<string, LintMdRulesConfig>()
+
+function loadRulesConfigFromUri(folderUri: string): LintMdRulesConfig {
+  const filePath = path.join(uriToFsPath(folderUri), 'mdlint.json')
+  if (!fs.existsSync(filePath))
+    return {}
+
+  try {
+    const config: unknown = JSON.parse(fs.readFileSync(filePath, 'utf8'))
+    if (typeof config !== 'object' || config === null || Array.isArray(config))
+      throw new TypeError('Expected a JSON object')
+
+    const rules = (config as { rules?: unknown }).rules
+    if (rules === undefined)
+      return {}
+    if (typeof rules !== 'object' || rules === null || Array.isArray(rules))
+      throw new TypeError('Expected "rules" to be a JSON object')
+
+    return rules as LintMdRulesConfig
+  }
+  catch (error) {
+    connection.console.error(`Failed to load ${filePath}: ${String(error)}`)
+    return {}
+  }
+}
+
+// --- helper functions ---
 
 function getSeverity(level: RULE_SEVERITY): DiagnosticSeverity | undefined {
   switch (level) {
@@ -47,6 +79,45 @@ function getSeverity(level: RULE_SEVERITY): DiagnosticSeverity | undefined {
 // Also include all preview / proposed LSP features.
 // 同时包含所有预览版和提议中的 LSP 功能。
 const connection = createConnection(ProposedFeatures.all)
+
+async function getRulesConfigForDocument(docUri: string): Promise<LintMdRulesConfig> {
+  const folders = await connection.workspace.getWorkspaceFolders()
+  if (!folders)
+    return {}
+
+  const docPath = path.resolve(uriToFsPath(docUri))
+
+  let bestFolder: { uri: string } | undefined
+  let bestLen = 0
+  for (const folder of folders) {
+    const folderPath = path.resolve(uriToFsPath(folder.uri))
+    const relativePath = path.relative(folderPath, docPath)
+    const isWithinFolder = relativePath === ''
+      || (
+        relativePath !== '..'
+        && !relativePath.startsWith(`..${path.sep}`)
+        && !path.isAbsolute(relativePath)
+      )
+    if (
+      isWithinFolder
+      && folderPath.length > bestLen
+    ) {
+      bestFolder = folder
+      bestLen = folderPath.length
+    }
+  }
+
+  if (!bestFolder)
+    return {}
+
+  const cached = workspaceRulesCache.get(bestFolder.uri)
+  if (cached !== undefined)
+    return cached
+
+  const rules = loadRulesConfigFromUri(bestFolder.uri)
+  workspaceRulesCache.set(bestFolder.uri, rules)
+  return rules
+}
 
 // Create a simple text document manager.
 // 创建一个简单的文本文档管理器。
@@ -98,15 +169,15 @@ connection.onInitialized(() => {
   }
   if (hasWorkspaceFolderCapability) {
     connection.workspace.onDidChangeWorkspaceFolders((_event) => {
-      connection.console.log('Workspace folder change event received.')
+      workspaceRulesCache.clear()
+      documents.all().forEach(validateTextDocument)
     })
   }
 })
 
-// The example settings
-// 示例设置。
-interface ExampleSettings {
-  num: number
+// --- settings ---
+interface mdLintSettings {
+  rules: LintMdRulesConfig
 }
 
 // The global settings, used when the `workspace/configuration` request is not supported by the client.
@@ -115,12 +186,12 @@ interface ExampleSettings {
 // 请注意，与本示例提供的客户端配合使用此服务端时不会出现这种情况，
 // but could happen with other clients.
 // 但使用其他客户端时可能会出现。
-const defaultSettings: ExampleSettings = { num: 1000 }
-let globalSettings: ExampleSettings = defaultSettings
+const defaultSettings: mdLintSettings = { rules: { 'no-long-code': [1, { length: 137, exclude: [] }] } }
+let globalSettings: mdLintSettings = defaultSettings
 
 // Cache the settings of all open documents
 // 缓存所有已打开文档的设置。
-const documentSettings: Map<string, Thenable<ExampleSettings>> = new Map()
+const documentSettings: Map<string, Thenable<mdLintSettings>> = new Map()
 
 connection.onDidChangeConfiguration((change) => {
   if (hasConfigurationCapability) {
@@ -129,7 +200,7 @@ connection.onDidChangeConfiguration((change) => {
     documentSettings.clear()
   }
   else {
-    globalSettings = <ExampleSettings>(
+    globalSettings = <mdLintSettings>(
       (change.settings.mdLintServer || defaultSettings)
     )
   }
@@ -139,16 +210,18 @@ connection.onDidChangeConfiguration((change) => {
   documents.all().forEach(validateTextDocument)
 })
 
-function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
+function getDocumentSettings(resource: string): Thenable<mdLintSettings> {
   if (!hasConfigurationCapability) {
     return Promise.resolve(globalSettings)
   }
   let result = documentSettings.get(resource)
   if (!result) {
-    result = connection.workspace.getConfiguration({
-      scopeUri: resource,
-      section: 'mdLintServer',
-    })
+    result = connection.workspace
+      .getConfiguration({
+        scopeUri: resource,
+        section: 'mdLintServer',
+      })
+      .then(settings => settings ?? defaultSettings)
     documentSettings.set(resource, result)
   }
   return result
@@ -172,11 +245,13 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   // In this simple example we get the settings for every validate run.
   // 在这个简单示例中，每次验证时都会获取设置。
   const _settings = await getDocumentSettings(textDocument.uri)
+  const rulesConfig = await getRulesConfigForDocument(textDocument.uri)
+  const rules = Object.assign({}, _settings.rules, rulesConfig)
 
   // The validator creates diagnostics for all uppercase words length 2 and more
   // 验证器会为长度至少为 2 的所有大写单词生成诊断信息。
   const text = textDocument.getText()
-  const { lintResult = [] } = lintMarkdown(text, rulesConfig, false)
+  const { lintResult = [] } = lintMarkdown(text, rules, false)
 
   const diagnostics: Diagnostic[] = []
 
@@ -200,10 +275,9 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   connection.sendDiagnostics({ uri: textDocument.uri, diagnostics })
 }
 
-connection.onDidChangeWatchedFiles((_change) => {
-  // Monitored files have change in VSCode
-  // VS Code 中受监视的文件发生了变化。
-  connection.console.log('We received an file change event')
+connection.onDidChangeWatchedFiles(() => {
+  workspaceRulesCache.clear()
+  documents.all().forEach(validateTextDocument)
 })
 
 // This handler provides the initial list of the completion items.

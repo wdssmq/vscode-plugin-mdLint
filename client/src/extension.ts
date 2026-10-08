@@ -50,9 +50,9 @@ export function activate(context: ExtensionContext) {
     // 为纯文本类文档注册服务端。
     documentSelector: [{ scheme: 'file', language: 'markdown' }],
     synchronize: {
-      // Notify the server about file changes to '.clientrc files contained in the workspace.
-      // 工作区中的 .clientrc 文件发生更改时通知服务端。
-      fileEvents: workspace.createFileSystemWatcher('**/.clientrc'),
+      // Notify the server about file changes to 'mdlint.json' files contained in the workspace.
+      // 工作区中的 mdlint.json 文件发生更改时通知服务端。
+      fileEvents: workspace.createFileSystemWatcher('**/mdlint.json'),
     },
   }
 
