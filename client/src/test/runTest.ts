@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *-------------------------------------------------------------------------------------------- */
 import * as path from 'node:path'
+import { exit, platform } from 'node:process'
 
 import { runTests } from '@vscode/test-electron'
 
@@ -20,7 +21,7 @@ async function main() {
     await runTests({
       extensionDevelopmentPath,
       extensionTestsPath,
-      platform: process.platform === 'win32' ? 'win32-x64-archive' : undefined,
+      platform: platform === 'win32' ? 'win32-x64-archive' : undefined,
       launchArgs: [
         `--user-data-dir=${path.resolve(extensionDevelopmentPath, '.vscode-test', 'user-data')}`,
         `--extensions-dir=${path.resolve(extensionDevelopmentPath, '.vscode-test', 'extensions')}`,
@@ -30,7 +31,7 @@ async function main() {
   catch (err) {
     console.error('Failed to run tests')
     console.error(err)
-    process.exit(1)
+    exit(1)
   }
 }
 

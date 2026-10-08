@@ -29,7 +29,7 @@ import {
 
 let rulesConfig = {}
 if (fs.existsSync(path.resolve('./mdlint.json'))) {
-  rulesConfig = require(path.resolve('./mdlint.json')).rules
+  rulesConfig = JSON.parse(fs.readFileSync(path.resolve('./mdlint.json'), 'utf8')).rules
 }
 
 function getLevelType(level: string) {
@@ -55,8 +55,6 @@ const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument)
 
 let hasConfigurationCapability = false
 let hasWorkspaceFolderCapability = false
-let hasDiagnosticRelatedInformationCapability = false
-
 connection.onInitialize((params: InitializeParams) => {
   const capabilities = params.capabilities
 
@@ -70,12 +68,6 @@ connection.onInitialize((params: InitializeParams) => {
   hasWorkspaceFolderCapability = !!(
     capabilities.workspace && !!capabilities.workspace.workspaceFolders
   )
-  hasDiagnosticRelatedInformationCapability = !!(
-    capabilities.textDocument
-    && capabilities.textDocument.publishDiagnostics
-    && capabilities.textDocument.publishDiagnostics.relatedInformation
-  )
-
   const result: InitializeResult = {
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Incremental,
@@ -180,7 +172,7 @@ documents.onDidChangeContent((change) => {
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   // In this simple example we get the settings for every validate run.
   // 在这个简单示例中，每次验证时都会获取设置。
-  const settings = await getDocumentSettings(textDocument.uri)
+  const _settings = await getDocumentSettings(textDocument.uri)
 
   // The validator creates diagnostics for all uppercase words length 2 and more
   // 验证器会为长度至少为 2 的所有大写单词生成诊断信息。

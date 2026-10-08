@@ -6,10 +6,8 @@
 import * as path from 'node:path'
 import * as vscode from 'vscode'
 
-export let doc: vscode.TextDocument
-export let editor: vscode.TextEditor
-export let documentEol: string
-export let platformEol: string
+let doc: vscode.TextDocument
+let editor: vscode.TextEditor
 
 /**
  * Activates this extension.
