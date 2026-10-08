@@ -1,8 +1,15 @@
 {
-	"editor.insertSpaces": false,
-	"js/ts.tsc.autoDetect": "off",
-	"js/ts.preferences.quoteStyle": "single",
-	"editor.codeActionsOnSave": {
-		"source.fixAll.eslint": "explicit"
-	}
+  "editor.insertSpaces": false,
+  "js/ts.tsc.autoDetect": "off",
+  "js/ts.preferences.quoteStyle": "single",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  // File nesting rules tailored to this repository.
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": false,
+  "explorer.fileNesting.patterns": {
+    "package.json": "pnpm-lock.yaml, pnpm-workspace.yaml, .eslintrc.js, .eslintignore",
+    "README.md": "CHANGELOG.md"
+  },
 }
