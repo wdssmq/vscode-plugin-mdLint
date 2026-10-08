@@ -2,6 +2,7 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
+import type { RULE_SEVERITY } from '@lint-md/core'
 import type {
   CompletionItem,
   Diagnostic,
@@ -11,10 +12,8 @@ import type {
 } from 'vscode-languageserver/node'
 
 import * as fs from 'node:fs'
-
-// lint-md 相关
 import * as path from 'node:path'
-import { lint } from 'lint-md'
+import { lintMarkdown } from '@lint-md/core'
 import { TextDocument } from 'vscode-languageserver-textdocument'
 import {
   CompletionItemKind,
@@ -32,14 +31,14 @@ if (fs.existsSync(path.resolve('./mdlint.json'))) {
   rulesConfig = JSON.parse(fs.readFileSync(path.resolve('./mdlint.json'), 'utf8')).rules
 }
 
-function getLevelType(level: string) {
+function getSeverity(level: RULE_SEVERITY): DiagnosticSeverity | undefined {
   switch (level) {
-    case 'error':
-      return 'Error'
-    case 'warning':
-      return 'Warning'
-    case 'ignore':
-      return false
+    case 2:
+      return DiagnosticSeverity.Error
+    case 1:
+      return DiagnosticSeverity.Warning
+    default:
+      return undefined
   }
 }
 
@@ -177,32 +176,22 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   // The validator creates diagnostics for all uppercase words length 2 and more
   // 验证器会为长度至少为 2 的所有大写单词生成诊断信息。
   const text = textDocument.getText()
-  const errors = lint(text, rulesConfig)
+  const { lintResult = [] } = lintMarkdown(text, rulesConfig, false)
 
   const diagnostics: Diagnostic[] = []
 
-  errors.forEach((error: any) => {
-    const { start, end, text, type, level } = error
-    // const debug = [start.column, end.column, type, settings.num].join("，");
-
-    const levelType = getLevelType(level)
-
-    if (levelType) {
-      const diagnosic: Diagnostic = {
-        severity: DiagnosticSeverity[levelType],
-        // range: {
-        //   start: textDocument.positionAt(start.column),
-        //   end: textDocument.positionAt(end.column),
-        // },
+  lintResult.forEach((item: any) => {
+    const severity = getSeverity(item.severity)
+    if (severity !== undefined) {
+      diagnostics.push({
+        severity,
         range: {
-          start: Position.create(start.line - 1, start.column - 1),
-          end: Position.create(end.line - 1, end.column - 1),
+          start: Position.create(item.loc.start.line - 1, item.loc.start.column - 1),
+          end: Position.create(item.loc.end.line - 1, item.loc.end.column - 1),
         },
-        // message: `${text}\n[${type}]\n${debug}`,
-        message: `${text}\n[${type}]`,
+        message: `${item.message}\n[${item.name}]`,
         source: 'mdlint',
-      }
-      diagnostics.push(diagnosic)
+      })
     }
   })
 
