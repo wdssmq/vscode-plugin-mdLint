@@ -3,19 +3,19 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import * as vscode from 'vscode';
-import * as assert from 'assert';
-import { getDocUri, activate } from './helper';
+import * as assert from 'node:assert'
+import * as vscode from 'vscode'
+import { activate, getDocUri } from './helper'
 
 suite('Markdown diagnostics', () => {
-	const docUri = getDocUri('diagnostics.md');
+  const docUri = getDocUri('diagnostics.md')
 
-	test('Publishes lint diagnostics', async () => {
-		await activate(docUri);
+  it('publishes lint diagnostics', async () => {
+    await activate(docUri)
 
-		const diagnostics = vscode.languages.getDiagnostics(docUri);
+    const diagnostics = vscode.languages.getDiagnostics(docUri)
 
-		assert.ok(diagnostics.length > 0, 'Expected lint-md to publish diagnostics');
-		assert.ok(diagnostics.every(diagnostic => diagnostic.source === 'mdlint'));
-	});
-});
+    assert.ok(diagnostics.length > 0, 'Expected lint-md to publish diagnostics')
+    assert.ok(diagnostics.every(diagnostic => diagnostic.source === 'mdlint'))
+  })
+})

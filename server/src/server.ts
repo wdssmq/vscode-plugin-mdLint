@@ -2,61 +2,63 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import {
-  createConnection,
-  TextDocuments,
-  Diagnostic,
-  DiagnosticSeverity,
-  ProposedFeatures,
-  InitializeParams,
-  DidChangeConfigurationNotification,
+import type {
   CompletionItem,
-  CompletionItemKind,
-  TextDocumentPositionParams,
-  TextDocumentSyncKind,
+  Diagnostic,
+  InitializeParams,
   InitializeResult,
-  Position,
-} from "vscode-languageserver/node";
+  TextDocumentPositionParams,
+} from 'vscode-languageserver/node'
 
-import { TextDocument } from "vscode-languageserver-textdocument";
+import * as fs from 'node:fs'
 
 // lint-md 相关
-import * as path from "path";
-import * as fs from "fs";
-import { lint } from "lint-md";
+import * as path from 'node:path'
+import { lint } from 'lint-md'
+import { TextDocument } from 'vscode-languageserver-textdocument'
+import {
+  CompletionItemKind,
+  createConnection,
+  DiagnosticSeverity,
+  DidChangeConfigurationNotification,
+  Position,
+  ProposedFeatures,
+  TextDocuments,
+  TextDocumentSyncKind,
+} from 'vscode-languageserver/node'
 
-let rulesConfig = {};
-if (fs.existsSync(path.resolve("./mdlint.json"))) {
-  rulesConfig = require(path.resolve("./mdlint.json")).rules;
+let rulesConfig = {}
+if (fs.existsSync(path.resolve('./mdlint.json'))) {
+  rulesConfig = require(path.resolve('./mdlint.json')).rules
 }
 
-const getLevelType = (level: string) => {
+function getLevelType(level: string) {
   switch (level) {
-    case "error":
-      return "Error";
-    case "warning":
-      return "Warning";
-    case "ignore":
-      return false;
+    case 'error':
+      return 'Error'
+    case 'warning':
+      return 'Warning'
+    case 'ignore':
+      return false
   }
-};
+}
 
 // Create a connection for the server, using Node's IPC as a transport.
 // 使用 Node.js IPC 作为传输方式，为服务端创建连接。
 // Also include all preview / proposed LSP features.
 // 同时包含所有预览版和提议中的 LSP 功能。
-const connection = createConnection(ProposedFeatures.all);
+const connection = createConnection(ProposedFeatures.all)
 
 // Create a simple text document manager.
 // 创建一个简单的文本文档管理器。
-const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
+const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument)
 
-let hasConfigurationCapability = false;
-let hasWorkspaceFolderCapability = false;
-let hasDiagnosticRelatedInformationCapability = false;
+let hasConfigurationCapability = false
+let hasWorkspaceFolderCapability = false
+let hasDiagnosticRelatedInformationCapability = false
 
 connection.onInitialize((params: InitializeParams) => {
-  const capabilities = params.capabilities;
+  const capabilities = params.capabilities
 
   // Does the client support the `workspace/configuration` request?
   // 客户端是否支持 `workspace/configuration` 请求？
@@ -64,15 +66,15 @@ connection.onInitialize((params: InitializeParams) => {
   // 如果不支持，则回退到使用全局设置。
   hasConfigurationCapability = !!(
     capabilities.workspace && !!capabilities.workspace.configuration
-  );
+  )
   hasWorkspaceFolderCapability = !!(
     capabilities.workspace && !!capabilities.workspace.workspaceFolders
-  );
+  )
   hasDiagnosticRelatedInformationCapability = !!(
-    capabilities.textDocument &&
-    capabilities.textDocument.publishDiagnostics &&
-    capabilities.textDocument.publishDiagnostics.relatedInformation
-  );
+    capabilities.textDocument
+    && capabilities.textDocument.publishDiagnostics
+    && capabilities.textDocument.publishDiagnostics.relatedInformation
+  )
 
   const result: InitializeResult = {
     capabilities: {
@@ -83,16 +85,16 @@ connection.onInitialize((params: InitializeParams) => {
         resolveProvider: true,
       },
     },
-  };
+  }
   if (hasWorkspaceFolderCapability) {
     result.capabilities.workspace = {
       workspaceFolders: {
         supported: true,
       },
-    };
+    }
   }
-  return result;
-});
+  return result
+})
 
 connection.onInitialized(() => {
   if (hasConfigurationCapability) {
@@ -100,20 +102,20 @@ connection.onInitialized(() => {
     // 注册以接收所有配置变更。
     connection.client.register(
       DidChangeConfigurationNotification.type,
-      undefined
-    );
+      undefined,
+    )
   }
   if (hasWorkspaceFolderCapability) {
     connection.workspace.onDidChangeWorkspaceFolders((_event) => {
-      connection.console.log("Workspace folder change event received.");
-    });
+      connection.console.log('Workspace folder change event received.')
+    })
   }
-});
+})
 
 // The example settings
 // 示例设置。
 interface ExampleSettings {
-  num: number;
+  num: number
 }
 
 // The global settings, used when the `workspace/configuration` request is not supported by the client.
@@ -122,78 +124,79 @@ interface ExampleSettings {
 // 请注意，与本示例提供的客户端配合使用此服务端时不会出现这种情况，
 // but could happen with other clients.
 // 但使用其他客户端时可能会出现。
-const defaultSettings: ExampleSettings = { num: 1000 };
-let globalSettings: ExampleSettings = defaultSettings;
+const defaultSettings: ExampleSettings = { num: 1000 }
+let globalSettings: ExampleSettings = defaultSettings
 
 // Cache the settings of all open documents
 // 缓存所有已打开文档的设置。
-const documentSettings: Map<string, Thenable<ExampleSettings>> = new Map();
+const documentSettings: Map<string, Thenable<ExampleSettings>> = new Map()
 
 connection.onDidChangeConfiguration((change) => {
   if (hasConfigurationCapability) {
     // Reset all cached document settings
     // 重置所有缓存的文档设置。
-    documentSettings.clear();
-  } else {
+    documentSettings.clear()
+  }
+  else {
     globalSettings = <ExampleSettings>(
       (change.settings.mdLintServer || defaultSettings)
-    );
+    )
   }
 
   // Revalidate all open text documents
   // 重新验证所有已打开的文本文档。
-  documents.all().forEach(validateTextDocument);
-});
+  documents.all().forEach(validateTextDocument)
+})
 
 function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
   if (!hasConfigurationCapability) {
-    return Promise.resolve(globalSettings);
+    return Promise.resolve(globalSettings)
   }
-  let result = documentSettings.get(resource);
+  let result = documentSettings.get(resource)
   if (!result) {
     result = connection.workspace.getConfiguration({
       scopeUri: resource,
-      section: "mdLintServer",
-    });
-    documentSettings.set(resource, result);
+      section: 'mdLintServer',
+    })
+    documentSettings.set(resource, result)
   }
-  return result;
+  return result
 }
 
 // Only keep settings for open documents
 // 仅保留已打开文档的设置。
 documents.onDidClose((e) => {
-  documentSettings.delete(e.document.uri);
-});
+  documentSettings.delete(e.document.uri)
+})
 
 // The content of a text document has changed. This event is emitted
 // 文本文档内容发生变化时会触发此事件，
 // when the text document first opened or when its content has changed.
 // 包括文档首次打开或其内容发生更改时。
 documents.onDidChangeContent((change) => {
-  validateTextDocument(change.document);
-});
+  validateTextDocument(change.document)
+})
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   // In this simple example we get the settings for every validate run.
   // 在这个简单示例中，每次验证时都会获取设置。
-  const settings = await getDocumentSettings(textDocument.uri);
+  const settings = await getDocumentSettings(textDocument.uri)
 
   // The validator creates diagnostics for all uppercase words length 2 and more
   // 验证器会为长度至少为 2 的所有大写单词生成诊断信息。
-  const text = textDocument.getText();
-  const errors = lint(text, rulesConfig);
+  const text = textDocument.getText()
+  const errors = lint(text, rulesConfig)
 
-  const diagnostics: Diagnostic[] = [];
+  const diagnostics: Diagnostic[] = []
 
   errors.forEach((error: any) => {
-    const { start, end, text, type, level } = error;
+    const { start, end, text, type, level } = error
     // const debug = [start.column, end.column, type, settings.num].join("，");
 
-    const levelType = getLevelType(level);
+    const levelType = getLevelType(level)
 
     if (levelType) {
-      let diagnosic: Diagnostic = {
+      const diagnosic: Diagnostic = {
         severity: DiagnosticSeverity[levelType],
         // range: {
         //   start: textDocument.positionAt(start.column),
@@ -205,22 +208,22 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
         },
         // message: `${text}\n[${type}]\n${debug}`,
         message: `${text}\n[${type}]`,
-        source: "mdlint",
-      };
-      diagnostics.push(diagnosic);
+        source: 'mdlint',
+      }
+      diagnostics.push(diagnosic)
     }
-  });
+  })
 
   // Send the computed diagnostics to VSCode.
   // 将计算出的诊断信息发送给 VS Code。
-  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics })
 }
 
 connection.onDidChangeWatchedFiles((_change) => {
   // Monitored files have change in VSCode
   // VS Code 中受监视的文件发生了变化。
-  connection.console.log("We received an file change event");
-});
+  connection.console.log('We received an file change event')
+})
 
 // This handler provides the initial list of the completion items.
 // 此处理器提供初始的补全项列表。
@@ -234,18 +237,18 @@ connection.onCompletion(
     // 并始终提供相同的补全项。
     return [
       {
-        label: "TypeScript",
+        label: 'TypeScript',
         kind: CompletionItemKind.Text,
         data: 1,
       },
       {
-        label: "JavaScript",
+        label: 'JavaScript',
         kind: CompletionItemKind.Text,
         data: 2,
       },
-    ];
-  }
-);
+    ]
+  },
+)
 
 // This handler resolves additional information for the item selected in
 // 此处理器为补全列表中选中的项目解析更多信息，
@@ -253,21 +256,22 @@ connection.onCompletion(
 // 并将其补充到该项目中。
 connection.onCompletionResolve((item: CompletionItem): CompletionItem => {
   if (item.data === 1) {
-    item.detail = "TypeScript details";
-    item.documentation = "TypeScript documentation";
-  } else if (item.data === 2) {
-    item.detail = "JavaScript details";
-    item.documentation = "JavaScript documentation";
+    item.detail = 'TypeScript details'
+    item.documentation = 'TypeScript documentation'
   }
-  return item;
-});
+  else if (item.data === 2) {
+    item.detail = 'JavaScript details'
+    item.documentation = 'JavaScript documentation'
+  }
+  return item
+})
 
 // Make the text document manager listen on the connection
 // 让文本文档管理器通过此连接监听文档事件，
 // for open, change and close text document events
 // 包括文档打开、变更和关闭。
-documents.listen(connection);
+documents.listen(connection)
 
 // Listen on the connection
 // 开始监听此连接。
-connection.listen();
+connection.listen()

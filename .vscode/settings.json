@@ -11,5 +11,5 @@
   "explorer.fileNesting.patterns": {
     "package.json": "pnpm-lock.yaml, pnpm-workspace.yaml, .eslintrc.js, .eslintignore",
     "README.md": "CHANGELOG.md"
-  },
+  }
 }
