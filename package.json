@@ -17,7 +17,7 @@
     "Markdown"
   ],
   "engines": {
-    "vscode": "^1.43.0"
+    "vscode": "^1.100.0"
   },
   "activationEvents": [
     "onLanguage:plaintext"
