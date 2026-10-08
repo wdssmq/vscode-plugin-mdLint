@@ -45,7 +45,7 @@ lint-md/vscode-plugin: Configurable VSCode 💻markdown plugin：
     <td align="center" colspan="3">
       <a
         target="_blank"
-        href="https://afdian.net/@wdssmq"
+        href="https://afdian.com/a/wdssmq"
         title="沉冰浮水正在创作和 z-blog 相关或无关的各种有用或没用的代码 | 爱发电"
         ><img
           src="https://cdn.jsdelivr.net/gh/wdssmq/wdssmq@main/doc/afdian.png"
