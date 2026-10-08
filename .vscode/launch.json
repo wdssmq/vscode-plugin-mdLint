@@ -1,29 +1,34 @@
-// A launch configuration that compiles the extension and then opens it inside a new window
+// Client 启动扩展开发宿主；服务端可单独附加调试，也可通过 compound 同时调试。
 {
 	"version": "0.2.0",
 	"configurations": [
+		// 启动扩展开发宿主，并在启动前编译客户端与服务端。
 		{
+			"name": "Launch Client",
 			"type": "extensionHost",
 			"request": "launch",
-			"name": "Launch Client",
 			"runtimeExecutable": "${execPath}",
 			"args": ["--extensionDevelopmentPath=${workspaceFolder}"],
 			"outFiles": ["${workspaceFolder}/client/out/**/*.js"],
 			"preLaunchTask": "pnpm: watch"
 		},
+		// 附加到已由扩展启动、监听 6009 端口的语言服务器进程。
 		{
+			"name": "Attach to Server",
 			"type": "node",
 			"request": "attach",
-			"name": "Attach to Server",
+			// 端口需与 client/src/extension.ts 中的 --inspect=6009 一致。
 			"port": 6009,
 			"restart": true,
 			"outFiles": ["${workspaceFolder}/server/out/**/*.js"]
 		},
+		// 在扩展开发宿主中运行语言服务器端到端测试。
 		{
 			"name": "Language Server E2E Test",
 			"type": "extensionHost",
 			"request": "launch",
 			"runtimeExecutable": "${execPath}",
+			// 指定扩展测试入口和测试工作区。
 			"args": [
 				"--extensionDevelopmentPath=${workspaceFolder}",
 				"--extensionTestsPath=${workspaceFolder}/client/out/test/index",
@@ -34,6 +39,7 @@
 	],
 	"compounds": [
 		{
+			// 同时启动客户端扩展宿主和服务端调试器。
 			"name": "Client + Server",
 			"configurations": ["Launch Client", "Attach to Server"]
 		}
