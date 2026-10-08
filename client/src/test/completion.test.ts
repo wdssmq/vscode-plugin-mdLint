@@ -7,10 +7,10 @@ import * as vscode from 'vscode';
 import * as assert from 'assert';
 import { getDocUri, activate } from './helper';
 
-suite('Should do completion', () => {
-	const docUri = getDocUri('completion.txt');
+suite('Markdown completions', () => {
+	const docUri = getDocUri('completion.md');
 
-	test('Completes JS/TS in txt file', async () => {
+	test('Provides completion items', async () => {
 		await testCompletion(docUri, new vscode.Position(0, 0), {
 			items: [
 				{ label: 'JavaScript', kind: vscode.CompletionItemKind.Text },

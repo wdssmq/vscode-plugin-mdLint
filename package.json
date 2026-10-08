@@ -54,7 +54,7 @@
     "compile": "tsc -b",
     "watch": "tsc -b -w",
     "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
-    "test": "sh ./scripts/e2e.sh"
+    "test": "pnpm run compile && node ./client/out/test/runTest.js"
   },
   "devDependencies": {
     "@types/mocha": "^8.2.2",

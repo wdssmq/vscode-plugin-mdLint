@@ -17,9 +17,18 @@ async function main() {
 		const extensionTestsPath = path.resolve(__dirname, './index');
 
 		// Download VS Code, unzip it and run the integration test
-		await runTests({ extensionDevelopmentPath, extensionTestsPath });
+		await runTests({
+			extensionDevelopmentPath,
+			extensionTestsPath,
+			platform: process.platform === 'win32' ? 'win32-x64-archive' : undefined,
+			launchArgs: [
+				`--user-data-dir=${path.resolve(extensionDevelopmentPath, '.vscode-test', 'user-data')}`,
+				`--extensions-dir=${path.resolve(extensionDevelopmentPath, '.vscode-test', 'extensions')}`
+			]
+		});
 	} catch (err) {
 		console.error('Failed to run tests');
+		console.error(err);
 		process.exit(1);
 	}
 }
