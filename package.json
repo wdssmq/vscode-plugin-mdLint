@@ -3,7 +3,7 @@
   "name": "mdlint",
   "displayName": "mdLint",
   "version": "1.0.2",
-  "description": "使用 @lint-md/cli 为 Markdown 文件提供格式规则检查。",
+  "description": "使用 @lint-md/core 为 Markdown 文件提供格式规则检查。",
   "author": "wdssmq",
   "license": "MIT",
   "repository": {
@@ -28,25 +28,7 @@
     "configuration": {
       "type": "object",
       "title": "mdLint",
-      "properties": {
-        "mdLintServer.num": {
-          "scope": "resource",
-          "type": "number",
-          "default": 100,
-          "description": "Just A Number"
-        },
-        "mdLintServer.trace.server": {
-          "scope": "window",
-          "type": "string",
-          "enum": [
-            "off",
-            "messages",
-            "verbose"
-          ],
-          "default": "off",
-          "description": "Traces the communication between VS Code and the language server."
-        }
-      }
+      "properties": {}
     }
   },
   "scripts": {
