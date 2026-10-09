@@ -2,7 +2,7 @@
   "publisher": "wdssmq",
   "name": "mdlint",
   "displayName": "mdLint",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "使用 @lint-md/core 为 Markdown 文件提供格式规则检查。",
   "author": "wdssmq",
   "license": "MIT",
@@ -33,7 +33,7 @@
   },
   "scripts": {
     "vscode:prepublish": "pnpm run compile",
-    "compile": "tsc -b",
+    "compile": "tsc -b && esbuild client/src/extension.ts --bundle --platform=node --external:vscode --outfile=client/out/extension.js && esbuild server/src/server.ts --bundle --platform=node --outfile=server/out/server.js",
     "watch": "tsc -b -w",
     "test": "pnpm run compile && node ./client/out/test/runTest.js"
   },
@@ -41,6 +41,7 @@
     "@antfu/eslint-config": "^9.5.1",
     "@types/mocha": "^8.2.2",
     "@types/node": "^14.18.63",
+    "esbuild": "^0.28.2",
     "eslint": "^10.9.1",
     "mocha": "^8.3.2",
     "typescript": "^4.3.5"

@@ -2,6 +2,7 @@
 .vscode-test/**
 .github/**
 .history/**
+**/node_modules/**
 **/*.ts
 **/*.map
 .gitignore
@@ -13,15 +14,7 @@ pnpm-workspace.yaml
 **/tsconfig.base.json
 contributing.md
 .travis.yml
-client/node_modules/**
-!client/node_modules/vscode-jsonrpc/**
-!client/node_modules/vscode-languageclient/**
-!client/node_modules/vscode-languageserver-protocol/**
-!client/node_modules/vscode-languageserver-types/**
-!client/node_modules/{minimatch,brace-expansion,concat-map,balanced-match}/**
-!client/node_modules/{semver,lru-cache,yallist}/**
 scripts/**
 client/testFixture/**
 client/out/test/**
-server/node_modules/.bin/**
 *.code-workspace
