@@ -17,10 +17,12 @@ export async function activate(docUri: vscode.Uri) {
   if (!ext) {
     throw new Error('The mdLint extension is not available in the test host.')
   }
-  await ext.activate()
   doc = await vscode.workspace.openTextDocument(docUri)
   editor = await vscode.window.showTextDocument(doc)
   await sleep(2000) // Wait for server activation
+  if (!ext.isActive) {
+    throw new Error('Opening a Markdown document did not activate mdLint.')
+  }
 }
 
 async function sleep(ms: number) {
