@@ -1,8 +1,14 @@
 .vscode/**
+.vscode-test/**
+.github/**
 .history/**
 **/*.ts
 **/*.map
 .gitignore
+.editorconfig
+eslint.config.mjs
+pnpm-lock.yaml
+pnpm-workspace.yaml
 **/tsconfig.json
 **/tsconfig.base.json
 contributing.md
@@ -17,4 +23,5 @@ client/node_modules/**
 scripts/**
 client/testFixture/**
 client/out/test/**
+server/node_modules/.bin/**
 *.code-workspace
