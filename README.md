@@ -1,5 +1,5 @@
 # vscode-plugin-mdLint
-使用 @lint-md/cli 为 Markdown 文件提供格式规则检查。
+使用 @lint-md/core 为 Markdown 文件提供格式规则检查。
 
 Git：[https://github.com/wdssmq/vscode-plugin-mdLint](https://github.com/wdssmq/vscode-plugin-mdLint "wdssmq/vscode-plugin-mdLint: 使用 @lint-md/cli 为 Markdown 文件提供格式规则检查。")
 

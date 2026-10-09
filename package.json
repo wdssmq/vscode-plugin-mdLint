@@ -22,7 +22,7 @@
     "vscode": "^1.100.0"
   },
   "activationEvents": [
-    "onLanguage:plaintext"
+    "onLanguage:markdown"
   ],
   "contributes": {
     "configuration": {
