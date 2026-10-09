@@ -251,11 +251,32 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
   // The validator creates diagnostics for all uppercase words length 2 and more
   // 验证器会为长度至少为 2 的所有大写单词生成诊断信息。
   const text = textDocument.getText()
-  const { lintResult = [] } = lintMarkdown(text, rules, false)
+  let lintResult: ReturnType<typeof lintMarkdown>['lintResult']
+  try {
+    lintResult = lintMarkdown(text, rules, false).lintResult
+  }
+  catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    connection.console.error(`Failed to lint ${textDocument.uri}: ${message}`)
+    connection.sendDiagnostics({
+      uri: textDocument.uri,
+      diagnostics: [{
+        severity: DiagnosticSeverity.Error,
+        range: {
+          start: Position.create(0, 0),
+          end: Position.create(0, 0),
+        },
+        message: `Failed to lint Markdown: ${message}`,
+        source: 'mdlint',
+      }],
+    })
+    return
+  }
 
   const diagnostics: Diagnostic[] = []
+  const lintResults = lintResult ?? []
 
-  lintResult.forEach((item: any) => {
+  lintResults.forEach((item: any) => {
     const severity = getSeverity(item.severity)
     if (severity !== undefined) {
       diagnostics.push({
