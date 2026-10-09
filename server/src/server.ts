@@ -27,6 +27,25 @@ import {
   TextDocumentSyncKind,
 } from 'vscode-languageserver/node'
 
+// --- helper functions ---
+
+function getSeverity(level: RULE_SEVERITY): DiagnosticSeverity | undefined {
+  switch (level) {
+    case 2:
+      return DiagnosticSeverity.Error
+    case 1:
+      return DiagnosticSeverity.Warning
+    default:
+      return undefined
+  }
+}
+
+// Create a connection for the server, using Node's IPC as a transport.
+// 使用 Node.js IPC 作为传输方式，为服务端创建连接。
+// Also include all preview / proposed LSP features.
+// 同时包含所有预览版和提议中的 LSP 功能。
+const connection = createConnection(ProposedFeatures.all)
+
 // --- rules config ---
 function uriToFsPath(uri: string): string {
   if (uri.startsWith('file://')) {
@@ -60,25 +79,6 @@ function loadRulesConfigFromUri(folderUri: string): LintMdRulesConfig {
     return {}
   }
 }
-
-// --- helper functions ---
-
-function getSeverity(level: RULE_SEVERITY): DiagnosticSeverity | undefined {
-  switch (level) {
-    case 2:
-      return DiagnosticSeverity.Error
-    case 1:
-      return DiagnosticSeverity.Warning
-    default:
-      return undefined
-  }
-}
-
-// Create a connection for the server, using Node's IPC as a transport.
-// 使用 Node.js IPC 作为传输方式，为服务端创建连接。
-// Also include all preview / proposed LSP features.
-// 同时包含所有预览版和提议中的 LSP 功能。
-const connection = createConnection(ProposedFeatures.all)
 
 async function getRulesConfigForDocument(docUri: string): Promise<LintMdRulesConfig> {
   const folders = await connection.workspace.getWorkspaceFolders()
